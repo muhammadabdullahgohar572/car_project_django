@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout
 from .models import Car
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
 
 def Homepage(request):
     carData = Car.objects.all()
@@ -54,7 +55,26 @@ def AddCar(request):
             image=image,
             owner=request.user
         )
-        
-        
-        
+        return redirect("Home_page")
     return render(request,"Addcar.html")
+
+
+@login_required
+def ShowDetalis(request, id):
+    car = get_object_or_404(Car, id=id)
+    bids=car.bids.all()
+    remanining_time=max((car.end_auction - now()).total_seconds(),0)
+    error_message=None,
+    acution_active=remanining_time >0
+    winner=0
+    
+    context={
+        "car":car,
+        "bids":bids,
+        "remanining_time":remanining_time,
+        "error_message":error_message,
+        "acution_active":acution_active,
+        "winner":winner
+    }
+    return render(request, "ShowDeatils.html", context)
+    
